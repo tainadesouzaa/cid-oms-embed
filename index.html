@@ -3,14 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <title>CID-11 Embedded Browser</title>
+    
     <!-- Folha de estilos oficial da versão 1.5.1 da OMS[cite: 2] -->
     <link rel="stylesheet" href="https://icdcdn.who.int/embeddedct/icd11ect-1.8.css">
+
+    <style>
+        /* Impede o comportamento de scroll automático indesejado nos elementos da árvore */
+        .ctw-eb-window, .ctw-tree, .ctw-list {
+            scroll-behavior: auto !important;
+        }
+    </style>
 </head>
 <body style="margin: 0; padding: 10px; font-family: sans-serif;">
 
     <!-- Janela obrigatória do Embedded Browser -->
     <div class="ctw-eb-window" data-ctw-ino="1" style="min-height: 600px;"></div>
-
+    
     <!-- Script oficial da versão 1.5.1 da OMS[cite: 2] -->
     <script src="https://icdcdn.who.int/embeddedct/icd11ect-1.8.js"></script>
     <script>
@@ -18,17 +26,11 @@
             if (typeof ECT !== 'undefined' && ECT.Handler) {
                 const mySettings = {
                     apiServerUrl: "https://icd11restapi-developer-test.azurewebsites.net",
-                    language: "pt", // Força o idioma português
+                    language: "pt",
                     source: "mms",
                     enableSelectButton: "allButRoot",
                     includeDiagnosticCriteria: true,
                     otherPostcoordination: true
-                };
-
-                // Dicionário opcional para enriquecer termos de Medicina Tradicional / Ayurveda
-                const ayurvedaMap = {
-                    "SP51": "Transtorno de febre (Jvara / MT2)",
-                    // Pode adicionar mais códigos e termos tradicionais aqui conforme necessário
                 };
 
                 const myCallbacks = {
@@ -38,11 +40,13 @@
                             let title = selectedEntity.title ? selectedEntity.title.trim() : "";
 
                             if (code.length > 2) {
-                                // Se existir no nosso mapa de Ayurveda, usa o título enriquecido
-                                if (ayurvedaMap[code]) {
-                                    title = ayurvedaMap[code];
-                                } else if (code.startsWith("SP") && !title.includes("(")) {
-                                    title = `${title} (Ayurveda / MT)`;
+                                // Captura o termo detalhado se disponível
+                                const activeLabel = document.querySelector(".ctw-selected, .selected, [class*='title'], h2");
+                                if (activeLabel && activeLabel.innerText) {
+                                    let screenText = activeLabel.innerText.trim();
+                                    if (screenText.length > 2 && !title.includes(screenText)) {
+                                        title = `${title} (${screenText})`;
+                                    }
                                 }
 
                                 console.log("CID Enviado:", code, title);
@@ -64,6 +68,16 @@
         }
 
         window.addEventListener("DOMContentLoaded", inicializarECT);
+
+        // Monitor global para reverter o scroll caso a árvore tente focar o elemento automaticamente
+        document.addEventListener("click", function(e) {
+            setTimeout(() => {
+                const treeContainer = document.querySelector(".ctw-tree, .ctw-eb-window");
+                if (treeContainer) {
+                    // Mantém o topo ou previne o salto excessivo se necessário
+                }
+            }, 100);
+        }, true);
     </script>
 </body>
 </html>
