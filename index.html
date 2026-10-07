@@ -24,21 +24,44 @@
 
             const myCallbacks = {
                 selectedEntityFunction: function (selectedEntity) {
-                    // Imprime na consola do iframe para sabermos se o clique foi detetado
-                    console.log("CID Selecionado com sucesso:", selectedEntity);
-
-                    // Envia o código e título selecionados para a sua aplicação principal
-                    window.parent.postMessage({
-                        type: "CID_SELECIONADO",
-                        code: selectedEntity.code,
-                        title: selectedEntity.title
-                    }, "*");
+                    enviarParaProntuario(selectedEntity.code, selectedEntity.title);
                 }
             };
 
             if (typeof ECT !== 'undefined') {
                 ECT.Handler.configure(mySettings, myCallbacks);
             }
+
+            function enviarParaProntuario(code, title) {
+                if (!code) return;
+                console.log("A enviar para o prontuário -> Código:", code, "Título:", title);
+                window.parent.postMessage({
+                    type: "CID_SELECIONADO",
+                    code: code,
+                    title: title
+                }, "*");
+            }
+
+            // Captura de segurança por cliques na interface caso o callback nativo falhe
+            document.addEventListener("click", function (event) {
+                const target = event.target;
+                // Procura por botões ou elementos de seleção gerados pela OMS
+                if (target && (target.classList.contains("ctw-select") || target.innerText === "Selecionar" || target.getAttribute("data-ctw-action") === "select")) {
+                    console.log("Clique detetado no botão de seleção da OMS");
+                    
+                    // Tenta extrair os dados da entidade ativa na página da OMS
+                    setTimeout(() => {
+                        const codeElement = document.querySelector(".ctw-code, .code, [class*='code']");
+                        const titleElement = document.querySelector(".ctw-title, .title, [class*='title']");
+                        
+                        if (codeElement) {
+                            const code = codeElement.innerText.trim();
+                            const title = titleElement ? titleElement.innerText.trim() : "";
+                            enviarParaProntuario(code, title);
+                        }
+                    }, 300);
+                }
+            }, true);
         });
     </script>
 </body>
