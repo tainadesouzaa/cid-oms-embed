@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <title>CID-11 Embedded Browser</title>
-    <!-- Estilos oficiais da versão 1.5.1 da OMS -->
-    <link rel="stylesheet" href="https://icdcdn.who.int/embeddedict/icd11ect-1.5.1.css">
+    <!-- Folha de estilos oficial da OMS -->
+    <link rel="stylesheet" href="https://icdcdn.who.int/embeddedict/latest/icd11ect.css">
 </head>
 <body style="margin: 0; padding: 10px; font-family: sans-serif;">
 
     <!-- Janela obrigatória do Embedded Browser -->
     <div class="ctw-eb-window" data-ctw-ino="1" style="min-height: 600px;"></div>
 
-    <!-- Script oficial da versão 1.5.1 da OMS -->
-    <script src="https://icdcdn.who.int/embeddedict/icd11ect-1.5.1.js"></script>
+    <!-- Script oficial da OMS -->
+    <script src="https://icdcdn.who.int/embeddedict/latest/icd11ect.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const mySettings = {
@@ -24,7 +24,7 @@
 
             const myCallbacks = {
                 selectedEntityFunction: function (selectedEntity) {
-                    // Envia o código e título selecionados de volta para o seu site via postMessage
+                    // Envia o código e título selecionados para o seu site via postMessage
                     window.parent.postMessage({
                         type: "CID_SELECIONADO",
                         code: selectedEntity.code,
