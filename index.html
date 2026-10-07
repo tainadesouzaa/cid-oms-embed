@@ -4,17 +4,34 @@
     <meta charset="UTF-8">
     <title>CID-11 Embedded Browser</title>
     
-    <!-- Folha de estilos oficial da versão 1.5.1 da OMS[cite: 2] -->
-    <link rel="stylesheet" href="https://icdcdn.who.int/embeddedct/icd11ect-1.8.css">
-
+    <!-- Folha de estilos oficial da versão 1.8 da OMS -->
+    <link rel="stylesheet" href="https://icdcdn.who.int/embeddedict/icd11ect-1.8.css">
     <style>
-        /* Impede o comportamento de scroll automático indesejado nos elementos da árvore */
-        .ctw-eb-window, .ctw-tree, .ctw-list {
-            scroll-behavior: auto !important;
+        body {
+            margin: 0;
+            padding: 10px;
+            font-family: sans-serif;
+            background-color: #f9f9f9;
+        }
+        #toast-copia {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2C2926;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            z-index: 9999;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
     </style>
 </head>
 <body style="margin: 0; padding: 10px; font-family: sans-serif;">
+
+    <div id="toast-copia">Copiado para a área de transferência! Cole onde quiser (Ctrl+V)</div>
 
     <!-- Janela obrigatória do Embedded Browser -->
     <div class="ctw-eb-window" data-ctw-ino="1" style="min-height: 600px;"></div>
@@ -22,6 +39,15 @@
     <!-- Script oficial da versão 1.5.1 da OMS[cite: 2] -->
     <script src="https://icdcdn.who.int/embeddedct/icd11ect-1.8.js"></script>
     <script>
+        function mostrarToast(mensagem) {
+            const toast = document.getElementById("toast-copia");
+            toast.innerText = mensagem;
+            toast.style.display = "block";
+            setTimeout(() => {
+                toast.style.display = "none";
+            }, 3000);
+        }
+
         function inicializarECT() {
             if (typeof ECT !== 'undefined' && ECT.Handler) {
                 const mySettings = {
@@ -37,47 +63,30 @@
                     selectedEntityFunction: function (selectedEntity) {
                         if (selectedEntity && selectedEntity.code) {
                             let code = selectedEntity.code.trim();
+                            // Utiliza estritamente o título oficial principal fornecido pela API da OMS
                             let title = selectedEntity.title ? selectedEntity.title.trim() : "";
 
                             if (code.length > 2) {
-                                // Captura o termo detalhado se disponível
-                                const activeLabel = document.querySelector(".ctw-selected, .selected, [class*='title'], h2");
-                                if (activeLabel && activeLabel.innerText) {
-                                    let screenText = activeLabel.innerText.trim();
-                                    if (screenText.length > 2 && !title.includes(screenText)) {
-                                        title = `${title} (${screenText})`;
-                                    }
-                                }
+                                const textoFinal = `[CID-11: ${code}] ${title}`;
 
-                                console.log("CID Enviado:", code, title);
-                                window.parent.postMessage({
-                                    type: "CID_SELECIONADO",
-                                    code: code,
-                                    title: title
-                                }, "*");
+                                // Copia para a área de transferência
+                                navigator.clipboard.writeText(textoFinal).then(() => {
+                                    mostrarToast(`Copiado: ${code} - ${title}`);
+                                }).catch(err => {
+                                    console.error("Erro ao copiar: ", err);
+                                });
                             }
                         }
                     }
                 };
 
                 ECT.Handler.configure(mySettings, myCallbacks);
-                console.log("ECT configurado com sucesso!");
             } else {
                 setTimeout(inicializarECT, 200);
             }
         }
 
         window.addEventListener("DOMContentLoaded", inicializarECT);
-
-        // Monitor global para reverter o scroll caso a árvore tente focar o elemento automaticamente
-        document.addEventListener("click", function(e) {
-            setTimeout(() => {
-                const treeContainer = document.querySelector(".ctw-tree, .ctw-eb-window");
-                if (treeContainer) {
-                    // Mantém o topo ou previne o salto excessivo se necessário
-                }
-            }, 100);
-        }, true);
     </script>
 </body>
 </html>
