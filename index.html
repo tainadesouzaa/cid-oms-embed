@@ -14,25 +14,34 @@
     <!-- Script oficial da versão 1.5.1 da OMS[cite: 2] -->
     <script src="https://icdcdn.who.int/embeddedct/icd11ect-1.8.js"></script>
     <script>
-        // Função para inicializar o widget assim que o ECT estiver disponível
         function inicializarECT() {
             if (typeof ECT !== 'undefined' && ECT.Handler) {
                 const mySettings = {
                     apiServerUrl: "https://icd11restapi-developer-test.azurewebsites.net",
                     language: "pt", // Força o idioma português
                     source: "mms",
-                    enableSelectButton: "all"
+                    enableSelectButton: "allButRoot", // Evita selecionar categorias de topo muito genéricas
+                    includeDiagnosticCriteria: true,   // Exibe os critérios diagnósticos no painel
+                    otherPostcoordination: true        // Permite pós-coordenação (detalhes clínicos avançados)
                 };
 
                 const myCallbacks = {
                     selectedEntityFunction: function (selectedEntity) {
                         if (selectedEntity && selectedEntity.code) {
-                            console.log("CID Selecionado:", selectedEntity);
-                            window.parent.postMessage({
-                                type: "CID_SELECIONADO",
-                                code: selectedEntity.code,
-                                title: selectedEntity.title
-                            }, "*");
+                            let code = selectedEntity.code.trim();
+                            let title = selectedEntity.title ? selectedEntity.title.trim() : "";
+
+                            // Garante o envio apenas de códigos consistentes
+                            if (code.length > 2) {
+                                console.log("CID Específico Selecionado:", code, title);
+                                window.parent.postMessage({
+                                    type: "CID_SELECIONADO",
+                                    code: code,
+                                    title: title
+                                }, "*");
+                            } else {
+                                console.log("Categoria ignorada (muito genérica):", code);
+                            }
                         }
                     }
                 };
@@ -40,7 +49,6 @@
                 ECT.Handler.configure(mySettings, myCallbacks);
                 console.log("ECT configurado com sucesso!");
             } else {
-                // Tenta novamente após 200ms caso o script ainda esteja a carregar
                 setTimeout(inicializarECT, 200);
             }
         }
