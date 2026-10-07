@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>CID-11 Embedded Browser</title>
+    <!-- Estilos oficiais da OMS -->
+    <link rel="stylesheet" href="https://icdcdn.who.int/embeddedict/latest/style.css">
+</head>
+<body style="margin: 0; padding: 10px; font-family: sans-serif;">
+
+    <!-- Janela obrigatória do Embedded Browser -->
+    <div class="ctw-eb-window" data-ctw-ino="1" style="min-height: 600px;"></div>
+
+    <!-- Script oficial da OMS -->
+    <script src="https://icdcdn.who.int/embeddedict/latest/ict.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const mySettings = {
+                apiServerUrl: "https://id.who.int",
+                language: "pt", // Força o idioma português
+                source: "mms",
+                enableSelectButton: "all"
+            };
+
+            const myCallbacks = {
+                selectedEntityFunction: function (selectedEntity) {
+                    // Envia o código e título selecionados para a página principal (o seu site)
+                    window.parent.postMessage({
+                        type: "CID_SELECIONADO",
+                        code: selectedEntity.code,
+                        title: selectedEntity.title
+                    }, "*");
+                }
+            };
+
+            if (typeof ECT !== 'undefined') {
+                ECT.Handler.configure(mySettings, myCallbacks);
+            }
+        });
+    </script>
+</body>
+</html>
