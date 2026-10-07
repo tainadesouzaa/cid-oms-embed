@@ -20,9 +20,15 @@
                     apiServerUrl: "https://icd11restapi-developer-test.azurewebsites.net",
                     language: "pt", // Força o idioma português
                     source: "mms",
-                    enableSelectButton: "allButRoot", // Evita selecionar categorias de topo muito genéricas
-                    includeDiagnosticCriteria: true,   // Exibe os critérios diagnósticos no painel
-                    otherPostcoordination: true        // Permite pós-coordenação (detalhes clínicos avançados)
+                    enableSelectButton: "allButRoot",
+                    includeDiagnosticCriteria: true,
+                    otherPostcoordination: true
+                };
+
+                // Dicionário opcional para enriquecer termos de Medicina Tradicional / Ayurveda
+                const ayurvedaMap = {
+                    "SP51": "Transtorno de febre (Jvara / MT2)",
+                    // Pode adicionar mais códigos e termos tradicionais aqui conforme necessário
                 };
 
                 const myCallbacks = {
@@ -31,16 +37,20 @@
                             let code = selectedEntity.code.trim();
                             let title = selectedEntity.title ? selectedEntity.title.trim() : "";
 
-                            // Garante o envio apenas de códigos consistentes
                             if (code.length > 2) {
-                                console.log("CID Específico Selecionado:", code, title);
+                                // Se existir no nosso mapa de Ayurveda, usa o título enriquecido
+                                if (ayurvedaMap[code]) {
+                                    title = ayurvedaMap[code];
+                                } else if (code.startsWith("SP") && !title.includes("(")) {
+                                    title = `${title} (Ayurveda / MT)`;
+                                }
+
+                                console.log("CID Enviado:", code, title);
                                 window.parent.postMessage({
                                     type: "CID_SELECIONADO",
                                     code: code,
                                     title: title
                                 }, "*");
-                            } else {
-                                console.log("Categoria ignorada (muito genérica):", code);
                             }
                         }
                     }
